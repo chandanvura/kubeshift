@@ -2,6 +2,7 @@ FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 COPY pom.xml .
 COPY kubeshift-core/pom.xml kubeshift-core/
+COPY kubeshift-remediate/pom.xml kubeshift-remediate/
 COPY kubeshift-core/src kubeshift-core/src/
 RUN mvn -pl kubeshift-core -am clean package -DskipTests
 

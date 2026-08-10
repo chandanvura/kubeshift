@@ -3,6 +3,7 @@ FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 # Copy the parent pom and module pom
 COPY pom.xml .
+COPY kubeshift-core/pom.xml kubeshift-core/
 COPY kubeshift-remediate/pom.xml kubeshift-remediate/
 COPY kubeshift-remediate/src kubeshift-remediate/src/
 
