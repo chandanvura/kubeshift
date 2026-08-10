@@ -84,14 +84,16 @@ jobs:
       - name: Build and push Core
         uses: docker/build-push-action@v5
         with:
-          context: ./kubeshift-core
+          context: .
+          file: ./kubeshift-core/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/kubeshift-core:${{ github.sha }},ghcr.io/${{ github.repository }}/kubeshift-core:latest
           
       - name: Build and push Remediate
         uses: docker/build-push-action@v5
         with:
-          context: ./kubeshift-remediate
+          context: .
+          file: ./kubeshift-remediate/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/kubeshift-remediate:${{ github.sha }},ghcr.io/${{ github.repository }}/kubeshift-remediate:latest
           

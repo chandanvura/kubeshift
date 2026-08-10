@@ -2,12 +2,11 @@ FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 # Copy the parent pom and module pom
-COPY pom.xml ./kubeshift-remediate/pom.xml
-# If building in context of parent, we might just copy all. Assuming standard module build.
-COPY src ./kubeshift-remediate/src
+COPY pom.xml .
+COPY kubeshift-remediate/pom.xml kubeshift-remediate/
+COPY kubeshift-remediate/src kubeshift-remediate/src/
 
-WORKDIR /app/kubeshift-remediate
-RUN mvn clean package -DskipTests
+RUN mvn -pl kubeshift-remediate -am clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 

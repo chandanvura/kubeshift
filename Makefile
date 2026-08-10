@@ -22,8 +22,8 @@ test:
 	cd kubeshift-analyzer && python -m pytest tests -v
 
 docker-build:
-	docker build -t kubeshift-core:latest ./kubeshift-core
-	docker build -t kubeshift-remediate:latest ./kubeshift-remediate
+	docker build -t kubeshift-core:latest -f kubeshift-core/Dockerfile .
+	docker build -t kubeshift-remediate:latest -f kubeshift-remediate/Dockerfile .
 	docker build -t kubeshift-analyzer:latest ./kubeshift-analyzer
 	docker build -t kubeshift-dashboard:latest ./kubeshift-dashboard
 
