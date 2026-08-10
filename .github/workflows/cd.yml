@@ -17,24 +17,17 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      
+        with:
+          ref: main
+
       - name: Update Helm values
         run: |
-          sed -i "s/tag: .*/tag: ${{ github.sha }}/g" deploy/helm/kubeshift/values.yaml
-          
+          sed -i "s/tag: .*/tag: ${{ github.event.workflow_run.head_sha }}/g" deploy/helm/kubeshift/values.yaml
+
       - name: Commit and push changes
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git add deploy/helm/kubeshift/values.yaml
-          git commit -m "chore: update image tags to ${{ github.sha }} [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: update image tags to ${{ github.event.workflow_run.head_sha }} [skip ci]"
           git push
-          
-      - name: Comment on commit
-        uses: peter-evans/commit-comment@v3
-        with:
-          sha: ${{ github.sha }}
-          body: |
-            Deployment initiated via GitOps!
-            ArgoCD will pick up the changes shortly.
-            Image tags updated to `${{ github.sha }}`.
