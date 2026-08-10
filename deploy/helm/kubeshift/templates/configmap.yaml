@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubeshift.fullname" . }}-config
+  labels:
+    {{- include "kubeshift.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  KUBESHIFT_ENV: "production"
+  ANALYZER_URL: "http://{{ include "kubeshift.fullname" . }}-analyzer:8082"
+  REMEDIATE_URL: "http://{{ include "kubeshift.fullname" . }}-remediate:8081"
+  PROMETHEUS_URL: "http://prometheus-server.monitoring.svc.cluster.local:80"

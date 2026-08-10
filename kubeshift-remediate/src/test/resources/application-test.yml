@@ -1,0 +1,9 @@
+kubeshift:
+  remediation:
+    dry-run: true
+    min-cpu-request: 50m
+    min-memory-request: 64Mi
+    auto-approve: false
+github:
+  token: ""
+  default-base-branch: main

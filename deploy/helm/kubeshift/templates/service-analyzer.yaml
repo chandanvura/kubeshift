@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubeshift.fullname" . }}-analyzer
+  labels:
+    {{- include "kubeshift.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analyzer
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8082
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "kubeshift.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: analyzer

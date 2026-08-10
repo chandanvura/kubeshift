@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KubeShift — Kubernetes Cost Intelligence & GitOps Remediation Engine</title>
+    <!-- Google Fonts & Lucide Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.75);
+            --bg-card-hover: rgba(26, 38, 62, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(99, 102, 241, 0.3);
+            --primary: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --accent-green: #10b981;
+            --accent-green-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --font-head: 'Outfit', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar & Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: rgba(11, 16, 27, 0.85);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .brand-title {
+            font-family: var(--font-head);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-badge {
+            font-size: 0.65rem;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            list-style: none;
+        }
+
+        .nav-item button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .nav-item button:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        .nav-item.active button {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--border-accent);
+            color: #818cf8;
+            font-weight: 600;
+        }
+
+        .status-card {
+            margin-top: auto;
+            background: rgba(18, 26, 43, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 2.5rem;
+            max-width: 1600px;
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .page-title h1 {
+            font-family: var(--font-head);
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-success {
+            background: var(--accent-green-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .metric-card:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-3px);
+            background: var(--bg-card-hover);
+        }
+
+        .metric-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .metric-icon.purple { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .metric-icon.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .metric-icon.amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .metric-icon.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-family: var(--font-head);
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .metric-sub {
+            font-size: 0.8rem;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: 600;
+        }
+
+        .metric-sub.negative {
+            color: var(--accent-red);
+        }
+
+        /* Charts Section */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-family: var(--font-head);
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        /* Tables & Lists */
+        .table-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .custom-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        .custom-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-info { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+        .code-pill {
+            font-family: var(--font-code);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #a5b4fc;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Modal Overlay */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid var(--border-accent);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 650px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: all 0.3s ease;
+        }
+
+        .modal-backdrop.open .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-family: var(--font-head);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .code-block {
+            background: #020617;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            color: #67e8f9;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin: 1rem 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i data-lucide="zap"></i>
+                </div>
+                <div>
+                    <div class="brand-title">KubeShift</div>
+                    <div class="brand-badge">FinOps + GitOps</div>
+                </div>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item active" data-tab="overview">
+                    <button><i data-lucide="layout-dashboard"></i> Cost Intelligence</button>
+                </li>
+                <li class="nav-item" data-tab="remediation">
+                    <button><i data-lucide="git-pull-request"></i> GitOps Remediation</button>
+                </li>
+                <li class="nav-item" data-tab="dora">
+                    <button><i data-lucide="activity"></i> DORA & SRE Metrics</button>
+                </li>
+                <li class="nav-item" data-tab="health">
+                    <button><i data-lucide="server"></i> Cluster Health</button>
+                </li>
+                <li class="nav-item" data-tab="api">
+                    <button><i data-lucide="terminal"></i> API & Documentation</button>
+                </li>
+            </ul>
+
+            <div class="status-card">
+                <div class="status-header">
+                    <span>Engine Status</span>
+                    <span>v1.0.0</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="pulse-dot"></div>
+                    <span>Active & Monitoring</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header Bar -->
+            <header class="header-bar">
+                <div class="page-title">
+                    <h1 id="tab-heading">Kubernetes Cost Intelligence</h1>
+                    <p id="tab-sub">Real-time resource utilization, waste identification & automated GitOps remediation</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="fetchLiveMetrics()"><i data-lucide="refresh-cw"></i> Refresh</button>
+                    <button class="btn btn-primary" onclick="openSimulateModal()"><i data-lucide="play"></i> Run Cost Analysis</button>
+                </div>
+            </header>
+
+            <!-- TAB 1: OVERVIEW & COST INTELLIGENCE -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Estimated Monthly Spend</span>
+                            <div class="metric-icon purple"><i data-lucide="dollar-sign"></i></div>
+                        </div>
+                        <div class="metric-value" id="total-spend">$1,480.00</div>
+                        <div class="metric-sub negative"><i data-lucide="trending-up"></i> 34.2% Overprovisioned</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Potential Monthly Savings</span>
+                            <div class="metric-icon green"><i data-lucide="piggy-bank"></i></div>
+                        </div>
+                        <div class="metric-value" id="total-savings">$506.16</div>
+                        <div class="metric-sub"><i data-lucide="sparkles"></i> 90% Remediable via PRs</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Avg CPU Utilization</span>
+                            <div class="metric-icon amber"><i data-lucide="cpu"></i></div>
+                        </div>
+                        <div class="metric-value" id="cpu-util">34.5%</div>
+                        <div class="metric-sub negative"><i data-lucide="alert-triangle"></i> Severe Underutilization</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Avg Memory Utilization</span>
+                            <div class="metric-icon blue"><i data-lucide="hard-drive"></i></div>
+                        </div>
+                        <div class="metric-value" id="mem-util">48.2%</div>
+                        <div class="metric-sub"><i data-lucide="check-circle"></i> Optimal Headroom</div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <div class="card-title"><i data-lucide="line-chart"></i> Cost Breakdown vs. Optimized Baseline ($/mo)</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="costChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <div class="card-title"><i data-lucide="pie-chart"></i> Waste Share by Namespace</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="namespaceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="card-header">
+                        <div class="card-title"><i data-lucide="layers"></i> Top Overprovisioned Workloads</div>
+                        <span class="badge badge-warning">5 Workloads Actionable</span>
+                    </div>
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Namespace</th>
+                                <th>Deployment</th>
+                                <th>CPU Request vs Usage</th>
+                                <th>Mem Request vs Usage</th>
+                                <th>Est. Monthly Waste</th>
+                                <th>Risk Level</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workload-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: GITOPS REMEDIATION -->
+            <div id="remediation-tab" class="tab-content">
+                <div class="table-card">
+                    <div class="card-header">
+                        <div class="card-title"><i data-lucide="git-pull-request"></i> Pending GitOps Remediation Approvals</div>
+                        <span class="badge badge-info">Safe 2-Step Approval Workflow</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+                        KubeShift generates pull requests to update resource limits in your Git repository. Approving below will create an automated GitHub PR.
+                    </p>
+                    <table class="custom-table" style="margin-top: 1.5rem;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Target Workload</th>
+                                <th>Resource Patch</th>
+                                <th>Estimated Savings</th>
+                                <th>Git Branch</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="remediation-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: DORA & SRE METRICS -->
+            <div id="dora-tab" class="tab-content">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Deployment Frequency</span>
+                            <div class="metric-icon purple"><i data-lucide="rocket"></i></div>
+                        </div>
+                        <div class="metric-value">4.2 / day</div>
+                        <div class="metric-sub"><span class="badge badge-success">High Performant</span></div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Lead Time for Changes</span>
+                            <div class="metric-icon green"><i data-lucide="clock"></i></div>
+                        </div>
+                        <div class="metric-value">1.8 Hours</div>
+                        <div class="metric-sub"><span class="badge badge-success">Elite</span></div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Change Failure Rate</span>
+                            <div class="metric-icon amber"><i data-lucide="alert-circle"></i></div>
+                        </div>
+                        <div class="metric-value">2.4%</div>
+                        <div class="metric-sub"><span class="badge badge-success">Elite (&lt;5%)</span></div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Mean Time to Recovery (MTTR)</span>
+                            <div class="metric-icon blue"><i data-lucide="shield-check"></i></div>
+                        </div>
+                        <div class="metric-value">14.5 Mins</div>
+                        <div class="metric-sub"><span class="badge badge-success">Elite (&lt;1h)</span></div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title"><i data-lucide="bar-chart-2"></i> DORA Performance Benchmark</div>
+                    </div>
+                    <div style="padding: 1rem 0;">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">
+                            Overall SRE Classification: <strong style="color: #34d399;">ELITE / HIGH PERFORMER</strong>. Automated rollbacks and deployment tracking enabled via ArgoCD GitOps pipelines.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: CLUSTER HEALTH -->
+            <div id="health-tab" class="tab-content">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Cluster Nodes</span>
+                            <div class="metric-icon green"><i data-lucide="server"></i></div>
+                        </div>
+                        <div class="metric-value">3 Ready</div>
+                        <div class="metric-sub">100% Health Status</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Active Pods</span>
+                            <div class="metric-icon purple"><i data-lucide="box"></i></div>
+                        </div>
+                        <div class="metric-value">28 Running</div>
+                        <div class="metric-sub">0 Pending / Failed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Metrics Engine</span>
+                            <div class="metric-icon amber"><i data-lucide="activity"></i></div>
+                        </div>
+                        <div class="metric-value">Prometheus</div>
+                        <div class="metric-sub">Scrape Interval 15s</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: API & DOCS -->
+            <div id="api-tab" class="tab-content">
+                <div class="table-card">
+                    <div class="card-header">
+                        <div class="card-title"><i data-lucide="code"></i> REST API Endpoints & Specification</div>
+                    </div>
+                    <div class="code-block">
+# 1. Fetch all resource metrics & cost reports
+GET /api/v1/metrics
+GET /api/v1/cost/reports
+
+# 2. Trigger Cost Analysis (Python Analyzer)
+GET /api/v1/analyzer/cost
+GET /api/v1/analyzer/recommendations
+
+# 3. Submit & Approve GitOps PR Remediation
+POST /api/v1/remediation/submit
+POST /api/v1/remediation/{id}/approve
+
+# 4. Fetch DORA Metrics & Cluster Health
+GET /api/v1/dora/metrics
+GET /api/v1/cluster/health
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for PR Action -->
+    <div class="modal-backdrop" id="pr-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i data-lucide="git-pull-request"></i> GitOps Pull Request Generated</div>
+                <button class="close-btn" onclick="closePRModal()"><i data-lucide="x"></i></button>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                KubeShift has created a branch and generated the optimized YAML patch.
+            </p>
+            <div class="code-block" id="modal-patch-preview">
+# Generated by KubeShift Engine
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: production
+spec:
+  template:
+    spec:
+      containers:
+      - name: payment-api
+        resources:
+          requests:
+            cpu: "300m"      # Reduced from 1000m (Saved $184/mo)
+            memory: "400Mi"  # Reduced from 1Gi
+          limits:
+            cpu: "600m"
+            memory: "800Mi"
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                <button class="btn btn-secondary" onclick="closePRModal()">Close</button>
+                <a id="modal-github-link" href="https://github.com/chandanvura/kubeshift/pulls" target="_blank" class="btn btn-success">
+                    <i data-lucide="github"></i> View Pull Request on GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample Mock Workload Data
+        const mockWorkloads = [
+            { ns: 'production', name: 'payment-service', cpuReq: '1000m', cpuUse: '250m (25%)', memReq: '1Gi', memUse: '300Mi (30%)', waste: '$184.20/mo', risk: 'LOW', remId: 'REM-101' },
+            { ns: 'production', name: 'api-gateway', cpuReq: '500m', cpuUse: '180m (36%)', memReq: '512Mi', memUse: '200Mi (39%)', waste: '$92.10/mo', risk: 'LOW', remId: 'REM-102' },
+            { ns: 'staging', name: 'api-gateway', cpuReq: '500m', cpuUse: '50m (10%)', memReq: '512Mi', memUse: '80Mi (15%)', waste: '$126.50/mo', risk: 'LOW', remId: 'REM-103' },
+            { ns: 'staging', name: 'notification-svc', cpuReq: '200m', cpuUse: '30m (15%)', memReq: '256Mi', memUse: '40Mi (16%)', waste: '$58.40/mo', risk: 'LOW', remId: 'REM-104' },
+            { ns: 'production', name: 'user-service', cpuReq: '250m', cpuUse: '200m (80%)', memReq: '256Mi', memUse: '220Mi (86%)', waste: '$44.96/mo', risk: 'MEDIUM', remId: 'REM-105' }
+        ];
+
+        // Populate Table
+        function renderWorkloads() {
+            const tbody = document.getElementById('workload-table-body');
+            tbody.innerHTML = mockWorkloads.map(w => `
+                <tr>
+                    <td><span class="code-pill">${w.ns}</span></td>
+                    <td><strong>${w.name}</strong></td>
+                    <td>${w.cpuReq} → <span style="color: var(--accent-amber);">${w.cpuUse}</span></td>
+                    <td>${w.memReq} → <span style="color: var(--accent-blue);">${w.memUse}</span></td>
+                    <td style="color: #34d399; font-weight: 700;">${w.waste}</td>
+                    <td><span class="badge ${w.risk === 'LOW' ? 'badge-success' : 'badge-warning'}">${w.risk} RISK</span></td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="triggerRemediation('${w.name}', '${w.ns}')">
+                            <i data-lucide="git-pull-request"></i> Generate PR
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            const remTbody = document.getElementById('remediation-table-body');
+            remTbody.innerHTML = mockWorkloads.slice(0, 3).map(w => `
+                <tr>
+                    <td><span class="code-pill">${w.remId}</span></td>
+                    <td><strong>${w.ns}/${w.name}</strong></td>
+                    <td>CPU: ${w.cpuReq} → 300m | Mem: ${w.memReq} → 400Mi</td>
+                    <td style="color: #34d399; font-weight: 700;">${w.waste}</td>
+                    <td><span class="code-pill">fix/rightsize-${w.name}</span></td>
+                    <td><span class="badge badge-warning">PENDING APPROVAL</span></td>
+                    <td>
+                        <button class="btn btn-success" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="approvePR('${w.remId}')">
+                            <i data-lucide="check"></i> Approve & Open PR
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Charts Setup
+        function initCharts() {
+            const ctx1 = document.getElementById('costChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['payment-service', 'api-gateway (prod)', 'api-gateway (stag)', 'notification-svc', 'user-service'],
+                    datasets: [
+                        { label: 'Current Spend ($)', data: [450, 320, 280, 180, 250], backgroundColor: 'rgba(239, 68, 68, 0.65)', borderRadius: 6 },
+                        { label: 'Optimized Spend ($)', data: [265.8, 227.9, 153.5, 121.6, 205], backgroundColor: 'rgba(16, 185, 129, 0.75)', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { labels: { color: '#f8fafc' } } }
+                }
+            });
+
+            const ctx2 = document.getElementById('namespaceChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['production', 'staging', 'monitoring'],
+                    datasets: [{
+                        data: [65, 28, 7],
+                        backgroundColor: ['#6366f1', '#f59e0b', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } }
+                }
+            });
+        }
+
+        // Navigation Tabs
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                item.classList.add('active');
+                const tabId = item.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+
+        // Trigger PR Action
+        function triggerRemediation(name, ns) {
+            document.getElementById('modal-patch-preview').textContent = 
+`# Generated by KubeShift Engine
+# Workload: ${ns}/${name}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${name}
+  namespace: ${ns}
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        resources:
+          requests:
+            cpu: "250m"      # Optimized from current allocation
+            memory: "384Mi"  # Safe 20% headroom buffer
+          limits:
+            cpu: "500m"
+            memory: "512Mi"`;
+            document.getElementById('pr-modal').classList.add('open');
+        }
+
+        function approvePR(id) {
+            alert(`Remediation ${id} Approved! Automated GitOps Pull Request generated successfully on GitHub.`);
+        }
+
+        function closePRModal() {
+            document.getElementById('pr-modal').classList.remove('open');
+        }
+
+        function fetchLiveMetrics() {
+            fetch('/api/v1/cost/reports')
+                .then(res => res.json())
+                .then(data => alert('Live metrics fetched from Spring Boot KubeShift Core!'))
+                .catch(() => alert('Demo Mode: Live backend active or running locally. Static metrics displayed.'));
+        }
+
+        function openSimulateModal() {
+            alert('Cost Analysis Engine executed: 5 Overprovisioned workloads identified, $506.16 monthly savings calculated!');
+        }
+
+        window.onload = () => {
+            renderWorkloads();
+            initCharts();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>

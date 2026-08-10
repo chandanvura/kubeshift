@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubeshift.fullname" . }}-remediate
+  labels:
+    {{- include "kubeshift.labels" . | nindent 4 }}
+    app.kubernetes.io/component: remediate
+spec:
+  replicas: {{ .Values.remediate.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kubeshift.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: remediate
+  template:
+    metadata:
+      labels:
+        {{- include "kubeshift.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: remediate
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: {{ include "kubeshift.serviceAccountName" . }}
+      containers:
+        - name: remediate
+          image: "{{ .Values.remediate.image.repository }}:{{ .Values.remediate.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.remediate.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.remediate.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "kubeshift.fullname" . }}-config

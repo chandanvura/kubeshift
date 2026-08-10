@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: kubeshift-core
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+kubeshift:
+  cost:
+    cpu-rate-per-core-hour: 0.048
+    memory-rate-per-gb-hour: 0.006
+    headroom-buffer-percent: 20
+  metrics:
+    collection-interval-seconds: 60
+  cluster:
+    mode: local
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

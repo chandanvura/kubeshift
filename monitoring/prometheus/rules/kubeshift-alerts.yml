@@ -1,0 +1,38 @@
+groups:
+  - name: kubeshift
+    rules:
+      - alert: KubeShiftHighCostAnomaly
+        expr: rate(kubeshift_cost_total[1h]) > 0.3 * avg_over_time(kubeshift_cost_total[24h])
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High cost anomaly detected"
+          description: "Cost spike > 30% in the last 1 hour."
+
+      - alert: KubeShiftServiceDown
+        expr: up{job=~"kubeshift-.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "KubeShift service is down"
+          description: "Service {{ $labels.job }} has been down for more than 2 minutes."
+
+      - alert: KubeShiftHighResourceWaste
+        expr: avg by (namespace) (kube_pod_container_resource_requests{resource="cpu"} - kube_pod_container_resource_usage{resource="cpu"}) / avg by (namespace) (kube_pod_container_resource_requests{resource="cpu"}) > 0.8
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "High resource waste"
+          description: "Resource utilization is < 20% for namespace {{ $labels.namespace }}."
+
+      - alert: KubeShiftDeploymentFailure
+        expr: rate(kube_deployment_status_replicas_unavailable[5m]) / rate(kube_deployment_spec_replicas[5m]) > 0.15
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High deployment failure rate"
+          description: "Change failure rate is > 15%."

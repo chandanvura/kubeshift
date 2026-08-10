@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: kubeshift-remediate
+
+kubeshift:
+  remediation:
+    dry-run: true
+    min-cpu-request: 50m
+    min-memory-request: 64Mi
+    auto-approve: false
+
+github:
+  token: ${GITHUB_TOKEN:}
+  default-base-branch: main
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics

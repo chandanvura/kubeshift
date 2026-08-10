@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kubeshift.fullname" . }}-role
+rules:
+  - apiGroups: ["", "apps", "autoscaling", "batch", "extensions", "metrics.k8s.io"]
+    resources: ["pods", "deployments", "namespaces", "nodes", "services", "daemonsets", "statefulsets", "replicasets", "horizontalpodautoscalers", "jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kubeshift.fullname" . }}-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kubeshift.fullname" . }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubeshift.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}

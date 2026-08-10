@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubeshift.fullname" . }}-analyzer
+  labels:
+    {{- include "kubeshift.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analyzer
+spec:
+  replicas: {{ .Values.analyzer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kubeshift.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: analyzer
+  template:
+    metadata:
+      labels:
+        {{- include "kubeshift.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: analyzer
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: {{ include "kubeshift.serviceAccountName" . }}
+      containers:
+        - name: analyzer
+          image: "{{ .Values.analyzer.image.repository }}:{{ .Values.analyzer.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.analyzer.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8082
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.analyzer.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "kubeshift.fullname" . }}-config

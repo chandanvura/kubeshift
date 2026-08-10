@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubeshift-core
+  namespace: kubeshift
+  labels:
+    app: kubeshift-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeshift-core
+  template:
+    metadata:
+      labels:
+        app: kubeshift-core
+    spec:
+      containers:
+        - name: core
+          image: ghcr.io/your-org/kubeshift-core:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "256Mi"

@@ -1,0 +1,9 @@
+kubeshift:
+  cluster:
+    mode: local
+  cost:
+    cpu-rate-per-core-hour: 0.048
+    memory-rate-per-gb-hour: 0.006
+    headroom-buffer-percent: 20
+  metrics:
+    collection-interval-seconds: 60
