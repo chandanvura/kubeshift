@@ -56,18 +56,34 @@ jobs:
 
   sonarqube-scan:
     runs-on: ubuntu-latest
+    # This job only runs when SONAR_TOKEN is configured as a repository secret.
+    # To enable: add SONAR_TOKEN secret in GitHub → Settings → Secrets → Actions
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+          fetch-depth: 0  # Shallow clones disabled for better SonarCloud analysis
+
+      - name: Check if SONAR_TOKEN is available
+        id: sonar-check
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "SONAR_TOKEN is not set. Skipping SonarCloud analysis."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "SONAR_TOKEN found. Proceeding with analysis."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up JDK 21
+        if: steps.sonar-check.outputs.skip == 'false'
         uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Cache SonarCloud packages
+        if: steps.sonar-check.outputs.skip == 'false'
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
@@ -75,13 +91,15 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Cache Maven packages
+        if: steps.sonar-check.outputs.skip == 'false'
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze Core
+      - name: Build and analyze Core with SonarCloud
+        if: steps.sonar-check.outputs.skip == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -90,9 +108,11 @@ jobs:
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=${{ github.repository_owner }}_kubeshift-core \
             -Dsonar.organization=${{ github.repository_owner }} \
-            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
-      - name: Build and analyze Remediate
+      - name: Build and analyze Remediate with SonarCloud
+        if: steps.sonar-check.outputs.skip == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -101,4 +121,5 @@ jobs:
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=${{ github.repository_owner }}_kubeshift-remediate \
             -Dsonar.organization=${{ github.repository_owner }} \
-            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
