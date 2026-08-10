@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings
+
+
 class Settings(BaseSettings):
-    CORE_SERVICE_URL: str = 'http://kubeshift-core:8080'
+    CORE_SERVICE_URL: str = "http://kubeshift-core:8080"
     COLLECTION_INTERVAL: int = 60
     ANOMALY_THRESHOLD: float = 2.0
     MIN_DATA_POINTS: int = 10
@@ -9,6 +11,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
 
 config = Settings()
 settings = config

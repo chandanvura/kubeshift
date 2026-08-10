@@ -23,9 +23,11 @@ app.include_router(router)
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
+
 @app.get("/health")
 def health_check():
     return {"status": "UP"}
+
 
 @app.on_event("startup")
 async def startup_event():

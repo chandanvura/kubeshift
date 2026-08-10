@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
+
 class ResourceMetrics(BaseModel):
     namespace: str
     deployment_name: str
@@ -16,6 +17,7 @@ class ResourceMetrics(BaseModel):
     memory_utilization_percent: float
     collected_at: datetime
 
+
 class CostAnalysis(BaseModel):
     namespace: str
     deployment_name: str
@@ -25,6 +27,7 @@ class CostAnalysis(BaseModel):
     savings_percent: float
     is_overprovisioned: bool
     recommendations: List[str]
+
 
 class AnomalyAlert(BaseModel):
     namespace: str
@@ -37,6 +40,7 @@ class AnomalyAlert(BaseModel):
     detected_at: datetime
     description: str
 
+
 class RightsizingRecommendation(BaseModel):
     namespace: str
     deployment_name: str
@@ -46,6 +50,7 @@ class RightsizingRecommendation(BaseModel):
     recommended_value: float
     savings_usd: float
     confidence_score: float
+
 
 class AnalyzerHealthStatus(BaseModel):
     status: str

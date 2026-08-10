@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import List
 from .models import ResourceMetrics
 
+
 def generate_mock_metrics() -> List[ResourceMetrics]:
     now = datetime.now(timezone.utc)
     return [
@@ -17,7 +18,7 @@ def generate_mock_metrics() -> List[ResourceMetrics]:
             memory_usage_bytes=200 * 1024 * 1024,
             cpu_utilization_percent=36.0,
             memory_utilization_percent=39.0,
-            collected_at=now
+            collected_at=now,
         ),
         ResourceMetrics(
             namespace="production",
@@ -31,7 +32,7 @@ def generate_mock_metrics() -> List[ResourceMetrics]:
             memory_usage_bytes=300 * 1024 * 1024,
             cpu_utilization_percent=25.0,
             memory_utilization_percent=29.2,
-            collected_at=now
+            collected_at=now,
         ),
         ResourceMetrics(
             namespace="production",
@@ -45,7 +46,7 @@ def generate_mock_metrics() -> List[ResourceMetrics]:
             memory_usage_bytes=220 * 1024 * 1024,
             cpu_utilization_percent=80.0,
             memory_utilization_percent=85.9,
-            collected_at=now
+            collected_at=now,
         ),
         ResourceMetrics(
             namespace="staging",
@@ -59,7 +60,7 @@ def generate_mock_metrics() -> List[ResourceMetrics]:
             memory_usage_bytes=80 * 1024 * 1024,
             cpu_utilization_percent=10.0,
             memory_utilization_percent=15.6,
-            collected_at=now
+            collected_at=now,
         ),
         ResourceMetrics(
             namespace="staging",
@@ -73,6 +74,6 @@ def generate_mock_metrics() -> List[ResourceMetrics]:
             memory_usage_bytes=40 * 1024 * 1024,
             cpu_utilization_percent=15.0,
             memory_utilization_percent=15.6,
-            collected_at=now
-        )
+            collected_at=now,
+        ),
     ]
