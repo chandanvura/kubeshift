@@ -98,28 +98,17 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze Core with SonarCloud
+      - name: Build and analyze with SonarCloud
         if: steps.sonar-check.outputs.skip == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -pl kubeshift-core -am -B verify \
+          mvn -B verify \
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=${{ github.repository_owner }}_kubeshift-core \
-            -Dsonar.organization=${{ github.repository_owner }} \
+            -Dsonar.projectKey=chandanvura_kubeshift \
+            -Dsonar.organization=chandanvura \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=kubeshift-core/target/site/jacoco/jacoco.xml,kubeshift-remediate/target/site/jacoco/jacoco.xml \
+            -DskipTests
 
-      - name: Build and analyze Remediate with SonarCloud
-        if: steps.sonar-check.outputs.skip == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -pl kubeshift-remediate -am -B verify \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=${{ github.repository_owner }}_kubeshift-remediate \
-            -Dsonar.organization=${{ github.repository_owner }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
