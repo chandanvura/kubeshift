@@ -3,7 +3,7 @@ core:
   image:
     repository: ghcr.io/your-org/kubeshift-core
     pullPolicy: IfNotPresent
-    tag: 1614598b0a06fe8fea66fa27152bc68fb4adb1c3
+    tag: e37415c304043da4265bcf8918898f0e4017cc81
   resources:
     limits:
       cpu: 500m
@@ -17,7 +17,7 @@ remediate:
   image:
     repository: ghcr.io/your-org/kubeshift-remediate
     pullPolicy: IfNotPresent
-    tag: 1614598b0a06fe8fea66fa27152bc68fb4adb1c3
+    tag: e37415c304043da4265bcf8918898f0e4017cc81
   resources:
     limits:
       cpu: 300m
@@ -31,7 +31,7 @@ analyzer:
   image:
     repository: ghcr.io/your-org/kubeshift-analyzer
     pullPolicy: IfNotPresent
-    tag: 1614598b0a06fe8fea66fa27152bc68fb4adb1c3
+    tag: e37415c304043da4265bcf8918898f0e4017cc81
   resources:
     limits:
       cpu: 500m
