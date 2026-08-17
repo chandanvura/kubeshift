@@ -23,22 +23,22 @@ jobs:
           docker build -t kubeshift-analyzer:${{ github.sha }} ./kubeshift-analyzer
 
       - name: Run Trivy vulnerability scanner on Core
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: 'kubeshift-core:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-core.sarif'
-          severity: 'CRITICAL'
-          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
       - name: Run Trivy vulnerability scanner on Remediate
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: 'kubeshift-remediate:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-remediate.sarif'
-          severity: 'CRITICAL'
-          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
       - name: Upload Core scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3

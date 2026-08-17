@@ -108,3 +108,13 @@ terraform.rc
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Security/Secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+kubeconfig
+secrets.yml
+/scratch/

@@ -2,7 +2,11 @@ version: '3.8'
 services:
   kubeshift-core:
     build:
-      context: ./kubeshift-core
+      context: .
+      dockerfile: kubeshift-core/Dockerfile
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8080:8080"
     depends_on:
@@ -18,7 +22,11 @@ services:
 
   kubeshift-remediate:
     build:
-      context: ./kubeshift-remediate
+      context: .
+      dockerfile: kubeshift-remediate/Dockerfile
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8081:8081"
     networks:
@@ -31,7 +39,11 @@ services:
 
   kubeshift-analyzer:
     build:
-      context: ./kubeshift-analyzer
+      context: .
+      dockerfile: kubeshift-analyzer/Dockerfile
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8082:8082"
     networks:
@@ -43,7 +55,10 @@ services:
       retries: 3
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.54.0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "9090:9090"
     volumes:
@@ -58,14 +73,16 @@ services:
       retries: 3
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.1.0
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "3000:3000"
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
       - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=kubeshift
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-kubeshift}
     networks:
       - kubeshift-network
     healthcheck:
@@ -75,7 +92,10 @@ services:
       retries: 3
 
   alertmanager:
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.27.0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "9093:9093"
     volumes:
@@ -89,7 +109,9 @@ services:
       retries: 3
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.1.0
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "3100:3100"
     volumes:

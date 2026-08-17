@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Pattern;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/cost")
 @RequiredArgsConstructor
+@Validated
 public class CostController {
 
     private final CostAnalyzerService costAnalyzerService;
@@ -24,7 +28,7 @@ public class CostController {
     }
 
     @GetMapping("/reports/{namespace}")
-    public List<CostReport> getReportsByNamespace(@PathVariable String namespace) {
+    public List<CostReport> getReportsByNamespace(@PathVariable @Pattern(regexp = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$") String namespace) {
         return costAnalyzerService.getReportsByNamespace(namespace);
     }
 

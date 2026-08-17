@@ -1,0 +1,13 @@
+.git
+.gitignore
+.github
+*.md
+.env*
+target/
+*.jar
+*.class
+.idea/
+*.iml
+.vscode/
+deploy/
+monitoring/

@@ -10,6 +10,10 @@ spring:
       write-dates-as-timestamps: false
 
 kubeshift:
+  security:
+    api-key: ${API_KEY:default-dev-key}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
   cost:
     cpu-rate-per-core-hour: 0.048
     memory-rate-per-gb-hour: 0.006
@@ -19,14 +23,20 @@ kubeshift:
   cluster:
     mode: local
 
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+    include-message: never
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        include: health,prometheus
   endpoint:
     health:
-      show-details: always
+      show-details: never
   prometheus:
     metrics:
       export:
